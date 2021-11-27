@@ -10,10 +10,13 @@
 
 int hard_disk[500]; // disk
 
-unsigned mask_1 = 0xFF000000; // file name
-unsigned mask_2 = 0x00FF0000; // start block
-unsigned mask_3 = 0x0000FF00; // end block
+unsigned mask_read_1 = 0xFF000000; // file name
+unsigned mask_read_2 = 0x00FF0000; // start block
+unsigned mask_read_3 = 0x0000FF00; // end block
 
+unsigned mask_clear_1 = 0x00FFFFFF; // file name
+unsigned mask_clear_2 = 0xFF00FFFF; // start block
+unsigned mask_clear_3 = 0xFFFF00FF; // end block
 
 
 /// <summary>
@@ -157,6 +160,57 @@ void contiguous_allocation(int files[], int content[], int startBlock, int files
 // Indexed
 
 
+
+void disk_add(int fileName, int startBlock, int endBlock)
+{
+	int i;
+	int temp = 0; 
+
+	// check if there's already 10 files
+	for (i = 0; i < 10; ++i)
+	{
+		if (hard_disk[i] == 0)
+		{
+			//add new entry
+
+			// check if file already has an entry
+			if (hash_search(fileName) == NULL) // if new entry
+			{
+				insert(fileName, hard_disk + i); // insert into table
+			}
+			// update start and end block
+			// Bit shifting to store file name, start and end block
+			temp = fileName;
+			temp = temp << 8;
+			temp += startBlock;
+			temp = temp << 8;
+			temp += endBlock;
+			temp = temp << 8;
+
+			hard_disk[i] = temp;
+			// TEST
+			//printf("binary: %d \n", temp);
+			//a = test & mask_1;
+			//a = a >> 24;
+			//printf("test a: %d \n", a);
+
+			//a = test & mask_2;
+			//a = a >> 16;
+			//printf("test a: %d \n", a);
+
+			//a = test & mask_3;
+			//a = a >> 8;
+			//printf("test a: %d \n", a);
+			// TEST
+			return NULL;
+		}
+		else
+		{
+			exit(-2);
+		}
+	}
+}
+
 int main(int argc, char** argv) {
 	/* Make your program do whatever you want */
 
@@ -233,44 +287,6 @@ int main(int argc, char** argv) {
 		{
 
 		}
-		else // add
-		{
-			insert(file_name, &hard_disk);
-
-			test = file_name;
-
-			test = test << 8;
-
-			test += 2;
-
-			test = test << 8;
-
-			test += 4;
-
-			test = test << 8;
-
-			printf("binary: %d \n", test);
-
-			a = test & mask_1;
-			a = a >> 24;
-			printf("test a: %d \n", a);
-
-			a = test & mask_2;
-			a = a >> 16;
-			printf("test a: %d \n", a);
-
-			a = test & mask_3;
-			a = a >> 8;
-			printf("test a: %d \n", a);
-
-		}
-
-
-
-		if (1)
-		{
-
-		 }
 		else if (insertion_algo == 1)
 		{
 			//find start block of the file
