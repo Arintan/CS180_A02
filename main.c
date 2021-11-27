@@ -9,40 +9,39 @@ int hard_disk[500];
 
 
 // Contiguous
-void contiguous_allocation()
+
+void contiguous_allocation(int files[], int startBlock, int filesLength) 
 {
-
-
-
-}
-
-void recurse(int files[]) {
-	int flag = 0, startBlock, len, j, k, ch;
+	int flag = 0, j, k, ch;
+	int start = startBlock;
+	int total_size = startBlock + filesLength;
 	printf("Enter the starting block and the length of the files: ");
-	scanf("%d%d", &startBlock, &len);
-	for (j = startBlock; j < (startBlock + len); j++) {
+	//scanf("%d%d", &startBlock, &len);
+	for (j = start; j < total_size; ++j) 
+	{
 		if (files[j] == 0)
 			flag++;
 	}
-	if (len == flag) {
-		for (int k = startBlock; k < (startBlock + len); k++) {
+	if (filesLength == flag) {
+		for (int k = startBlock; k < total_size; ++k) 
+		{
 			if (files[k] == 0) {
 				files[k] = 1;
 				printf("%d\t%d\n", k, files[k]);
 			}
 		}
-		if (k != (startBlock + len - 1))
+		if (k != (total_size - 1))
 			printf("The file is allocated to the disk\n");
 	}
 	else
 		printf("The file is not allocated to the disk\n");
-	printf("Do you want to enter more files?\n");
-	printf("Press 1 for YES, 0 for NO: ");
-	scanf("%d", &ch);
-	if (ch == 1)
-		recurse(files);
-	else
-		exit(0);
+	//printf("Do you want to enter more files?\n");
+	//printf("Press 1 for YES, 0 for NO: ");
+	//scanf("%d", &ch);
+	//if (ch == 1)
+	//	contiguous_allocation(files);
+	//else
+	//	exit(0);
 	return;
 }
 
