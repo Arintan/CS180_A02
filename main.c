@@ -5,12 +5,118 @@
 #pragma warning(disable:4996)
 #define _CRT_SECURE_NO_WARNINGS
 #define MAXCHAR 1024	// How many char to read at a time
-int hard_disk[500];
+#define TABLESIZE 10
+
+
+int hard_disk[500]; // disk
+
+unsigned mask_1 = 0xFF000000; // file name
+unsigned mask_2 = 0x00FF0000; // start block
+unsigned mask_3 = 0x0000FF00; // end block
+
+
+
+/// <summary>
+/// Hash Table 
+/// 
+/// Key is the file name
+/// Value is the address in the disk storing the file information
+/// </summary>
+
+struct MapItem
+{
+	int key; 
+	int value; 
+};
+
+struct MapItem* hash_table[TABLESIZE];
+struct MapItem* dummy;
+
+
+
+int hash_code(int key) {
+	return key % TABLESIZE;
+}
+
+struct MapItem* hash_search(int key)
+{
+	int index = hashCode(key);
+
+	//move in array until an empty 
+	while (hash_table[index] != NULL) 
+	{
+
+		if (hash_table[index]->key == key)
+			return hash_table[index];
+
+		//go to next cell
+		++index;
+
+		//wrap around the table
+		index %= TABLESIZE;
+	}
+
+	return NULL;
+}
+
+void hash_insert(int key, int value)
+{
+	struct MapItem* item = (struct MapItem*)malloc(sizeof(struct MapItem));
+
+	item->key = key;
+	item->value = value;
+
+	//get the hash 
+	int index = hash_code(key);
+
+	//move in array until an empty or deleted cell
+	while (hash_table[index] != NULL && hash_table[index]->key != -1) {
+		//go to next cell
+		++index;
+
+		//wrap around the table
+		index %= TABLESIZE;
+	}
+
+	hash_table[index] = item;
+}
+
+void hash_delete(int key)
+{
+	int index = hashCode(key);
+
+	//move in array until an empty
+	while (hash_table[index] != NULL)
+	{
+
+		if (hash_table[index]->key == key)
+		{
+			struct DataItem* temp = hash_table[index];
+
+			//assign a dummy item at deleted position
+			hash_table[index] = dummy;
+			return temp;
+		}
+
+		//go to next cell
+		++index;
+
+		//wrap around the table
+		index %= TABLESIZE;
+	}
+
+	return NULL;
+}
+
+// END OF HASH TABLE
+// END OF HASH TABLE
+// END OF HASH TABLE
+
 
 
 // Contiguous
 
-void contiguous_allocation(int files[], int startBlock, int filesLength) 
+void contiguous_allocation(int files[], int content[], int startBlock, int filesLength) 
 {
 	int flag = 0, j, k, ch;
 	int start = startBlock;
@@ -23,7 +129,7 @@ void contiguous_allocation(int files[], int startBlock, int filesLength)
 			flag++;
 	}
 	if (filesLength == flag) {
-		for (int k = startBlock; k < total_size; ++k) 
+		for (k = startBlock; k < total_size; ++k) 
 		{
 			if (files[k] == 0) {
 				files[k] = 1;
@@ -53,16 +159,44 @@ void contiguous_allocation(int files[], int startBlock, int filesLength)
 
 int main(int argc, char** argv) {
 	/* Make your program do whatever you want */
-	int hard_disk[500];
 
 	char row[MAXCHAR];
 
 	char* token;
 	char* command;
+	int insertion_algo = 0; // 1 contiguous, 2 linked, 3 index
 	int file_name;
 	int file_content[100];
 	int i = 0;
 
+	//tesst
+	int test = 0;
+	int a = 0;
+	//test
+
+	// initializing disk
+	for (int a = 0; a < 500; ++a)
+	{
+		hard_disk[a] = 0;
+	}
+
+	// initializing dummy entry for hash table
+	dummy = (struct MapItem*)malloc(sizeof(struct MapItem));
+	dummy->value = -1;
+	dummy->key = -1;
+
+	// choosing insertion algo for user
+	printf("Choose your insertion algorithm. 1 - Contiguous, 2 - Linked, 3 - Index \n");
+	scanf("%d", &insertion_algo);
+
+	if (insertion_algo < 1 || insertion_algo > 3)
+	{
+		printf("Invalid algorithm selected. \n");
+		exit(-1);
+	}
+
+
+	// reading csv
 	FILE* fstream = fopen("input.csv", "r");
 
 	while (!feof(fstream))
@@ -79,7 +213,6 @@ int main(int argc, char** argv) {
 		token = strtok(NULL, ",");
 		while (token != NULL)
 		{
-			//printf("token is: a%sa \n", token);
 			if (strcmp(token, "\n") == 0 || strlen(token) == 0)
 			{
 				break;
@@ -90,8 +223,75 @@ int main(int argc, char** argv) {
 			token = strtok(NULL, ",");
 		}
 
+		
+
+		if (strcmp(command, "read") == 0)
+		{
+
+		}
+		else if (strcmp(command, "delete") == 0)
+		{
+
+		}
+		else // add
+		{
+			insert(file_name, &hard_disk);
+
+			test = file_name;
+
+			test = test << 8;
+
+			test += 2;
+
+			test = test << 8;
+
+			test += 4;
+
+			test = test << 8;
+
+			printf("binary: %d \n", test);
+
+			a = test & mask_1;
+			a = a >> 24;
+			printf("test a: %d \n", a);
+
+			a = test & mask_2;
+			a = a >> 16;
+			printf("test a: %d \n", a);
+
+			a = test & mask_3;
+			a = a >> 8;
+			printf("test a: %d \n", a);
+
+		}
+
+
+
+		if (1)
+		{
+
+		 }
+		else if (insertion_algo == 1)
+		{
+			//find start block of the file
+			
+			//contiguous_allocation(hard_disk, file_content, startBlock, i)
+		}
+		else if (insertion_algo == 2)
+		{
+
+		}
+		else
+		{
+
+		}
+
 		i = 0;
 	}
+
+
+
+
 
 
 	return -1;
