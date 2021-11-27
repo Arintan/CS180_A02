@@ -64,13 +64,19 @@ struct MapItem* hash_search(int key)
 
 void hash_insert(int key, int value)
 {
-	struct MapItem* item = (struct MapItem*)malloc(sizeof(struct MapItem));
+	//get the hash 
+	int index = hash_code(key);
 
+	struct MapItem* item = (struct MapItem*)malloc(sizeof(struct MapItem));
+	if (item == NULL)
+	{
+		return NULL;
+	}
 	item->key = key;
 	item->value = value;
 
-	//get the hash 
-	int index = hash_code(key);
+
+
 
 	//move in array until an empty or deleted cell
 	while (hash_table[index] != NULL && hash_table[index]->key != -1) {
@@ -223,10 +229,6 @@ int main(int argc, char** argv) {
 	int file_content[100];
 	int i = 0;
 
-	//tesst
-	int test = 0;
-	int a = 0;
-	//test
 
 	// initializing disk
 	for (int a = 0; a < 500; ++a)
@@ -236,8 +238,12 @@ int main(int argc, char** argv) {
 
 	// initializing dummy entry for hash table
 	dummy = (struct MapItem*)malloc(sizeof(struct MapItem));
-	dummy->value = -1;
+	if (dummy == NULL)
+	{
+		return -1;
+	}
 	dummy->key = -1;
+	dummy->value = -1;
 
 	// choosing insertion algo for user
 	printf("Choose your insertion algorithm. 1 - Contiguous, 2 - Linked, 3 - Index \n");
@@ -292,14 +298,20 @@ int main(int argc, char** argv) {
 			//find start block of the file
 			
 			//contiguous_allocation(hard_disk, file_content, startBlock, i)
+			
+			//disk_add()
 		}
 		else if (insertion_algo == 2)
 		{
+			//linked
 
+			//disk_add()
 		}
 		else
 		{
+			//indexed
 
+			//disk_add()
 		}
 
 		i = 0;
