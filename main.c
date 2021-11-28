@@ -129,7 +129,7 @@ void sequential_allocation(int files[], int content[], int filesLength, int* _st
 {
 	int maxBlocks = 100;
 	int filledBlocks[100];
-	int flag = 0, len, k, ch;
+	int flag = 0, len, k, p;
 	int start, index, count = filesLength, entriesPerBlock = 5, i = 0, j = 0;
 	int blocksNeeded = 0;
 	int freeSpaceCount = 0;
@@ -168,7 +168,7 @@ void sequential_allocation(int files[], int content[], int filesLength, int* _st
 
 	if (files[index] == 0)
 	{
-		for (i = index; i < index + entriesPerBlock - 1; ++i)
+		for (i = index; i < index + entriesPerBlock; ++i)
 		{
 			//only if inside is empty
 			if (files[i] == 0)
@@ -179,14 +179,16 @@ void sequential_allocation(int files[], int content[], int filesLength, int* _st
 
 				if (freeSpaceCount == count)
 				{
-					//freeSpaceCount = 0;
-					//if (currentBlockSpace == blocksNeeded)
+					for (p = 0; p < count; ++p)
 					{
-						files[index] = content[j];
-						freeSpaceCount = 0;
-						printf("Successfully sequentially allocated! \n");
 
+						files[index] = content[j];
+						++index; ++j;
+						printf("Successfully sequentially allocated! \n");
 					}
+					freeSpaceCount = 0;
+					break;
+				}
 					//else
 					//{
 					//	printf("Not enough space in this block for sequantial allocation. Enter next starting block: \n");
@@ -195,10 +197,6 @@ void sequential_allocation(int files[], int content[], int filesLength, int* _st
 					//	freeSpaceCount = 0;
 					//	continue;
 					//}
-				}
-
-
-
 			}
 			else
 			{
@@ -609,7 +607,7 @@ int main(int argc, char** argv) {
 
 			if (method == 1) // contiguous
 			{
-
+				contiguous_delete(file_name);
 			}
 			else if (method == 2) //linked
 			{
