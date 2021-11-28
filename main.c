@@ -370,7 +370,25 @@ void indexed_delete(int fileName)
 
 void disk_map()
 {
+	int index = 0, blockNum = 0, start_block = 0, end_block = 0;
 
+	printf("Index\tBlock\tFile Data\n");
+	for (index = 0; index < 500; ++index)
+	{
+		if (index != 0 && index % 5 == 0)
+			++blockNum;
+
+		if (blockNum >= 0 && blockNum < 2 && hash_table[index] != NULL)
+		{
+			start_block = hard_disk[hash_table[index]->value] & mask_read_2;
+			start_block = start_block >> 16;
+			end_block = hard_disk[hash_table[index]->value] & mask_read_3;
+			end_block = end_block >> 8;
+			printf("%d\t%d\t%d, %d, %d\n", index, blockNum, hash_table[index]->key, start_block, end_block);
+		}
+		else
+			printf("%d\t%d\t%d\n", index, blockNum, hard_disk[index]);
+	}
 }
 
 int main(int argc, char** argv) {
@@ -556,7 +574,7 @@ int main(int argc, char** argv) {
 		i = 0;
 	}
 
-
+	disk_map();
 
 
 
