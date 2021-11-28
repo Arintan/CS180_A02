@@ -208,7 +208,7 @@ void linked_allocation(int files[], int content[], int filesLength, int* _startB
 
 
 
-void disk_add(int fileName, int startBlock, int endBlock)
+void disk_add(int fileName, int startBlock, int endBlock, int method)
 {
 	int i;
 	int temp = 0; 
@@ -233,6 +233,7 @@ void disk_add(int fileName, int startBlock, int endBlock)
 			temp = temp << 8;
 			temp += endBlock;
 			temp = temp << 8;
+			temp += method;
 
 			hard_disk[i] = temp;
 			// TEST
@@ -253,7 +254,7 @@ void disk_add(int fileName, int startBlock, int endBlock)
 		}
 		else
 		{
-			exit(-2);
+			continue;
 		}
 	}
 }
@@ -455,7 +456,7 @@ int main(int argc, char** argv) {
 				//start_block = hard_disk[item->value] & mask_read_3;
 				//end_block = end_block >> 8;
 				
-				method = hard_disk[item->value] & mask_read_4;
+				method = item->value & mask_read_4;
 
 
 				//printf("start block: %d \n", start_block);
@@ -491,15 +492,14 @@ int main(int argc, char** argv) {
 			int method = 0;
 			if (item != NULL)
 			{
-				hard_disk[item->value];
 
-				start_block = hard_disk[item->value] & mask_read_2;
+				start_block = item->value & mask_read_2;
 				start_block = start_block >> 16;
 
-				start_block = hard_disk[item->value] & mask_read_3;
+				start_block = item->value & mask_read_3;
 				end_block = end_block >> 8;
 
-				method = hard_disk[item->value] & mask_read_4;
+				method = item->value & mask_read_4;
 
 
 				printf("start block: %d \n", start_block);
@@ -544,7 +544,7 @@ int main(int argc, char** argv) {
 			linked_allocation(hard_disk, file_content, i, &_startBlock, &_endBlock);
 			printf("startblock: %d\n", _startBlock);
 			printf("endblock: %d\n", _endBlock);
-			disk_add(*hard_disk, _startBlock, _endBlock);
+			disk_add(file_name, _startBlock, _endBlock, 2);
 		}
 		else
 		{
