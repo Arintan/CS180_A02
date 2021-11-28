@@ -223,7 +223,7 @@ void disk_add(int fileName, int startBlock, int endBlock, int method)
 			// check if file already has an entry
 			if (hash_search(fileName) == NULL) // if new entry
 			{
-				hash_insert(fileName, hard_disk + i); // insert into table
+				hash_insert(fileName, i); // insert into table
 			}
 			// update start and end block
 			// Bit shifting to store file name, start and end block
@@ -269,7 +269,7 @@ void contiguous_read(int fileName)
 
 	start_block = hard_disk[item->value] & mask_read_2;
 	start_block = start_block >> 16;
-	start_block = hard_disk[item->value] & mask_read_3;
+	end_block = hard_disk[item->value] & mask_read_3;
 	end_block = end_block >> 8;
 
 	int start_index = start_block * 5;
@@ -299,19 +299,19 @@ void linked_read(int fileName)
 
 	start_block = hard_disk[item->value] & mask_read_2;
 	start_block = start_block >> 16;
-	start_block = hard_disk[item->value] & mask_read_3;
+	end_block = hard_disk[item->value] & mask_read_3;
 	end_block = end_block >> 8;
 
 
 	int start_index = 0;
-	int current_block = 0;
+	int current_block = start_block;
 	int i = 0;
 	while (current_block != end_block)
 	{
 		start_index = current_block * 5;
 		for (i = start_index; i < start_index + 4; ++i)
 		{
-			printf("File content at disk index %d: %d", i, hard_disk[i]);
+			printf("File content at disk index %d: %d \n", i, hard_disk[i]);
 		}
 		current_block = hard_disk[i];
 	}
@@ -323,7 +323,7 @@ void linked_read(int fileName)
 		{
 			if (hard_disk[i] > 0)
 			{
-				printf("File content at disk index %d: %d", i, hard_disk[i]);
+				printf("File content at disk index %d: %d \n", i, hard_disk[i]);
 			}
 			else
 			{
@@ -456,7 +456,7 @@ int main(int argc, char** argv) {
 				//start_block = hard_disk[item->value] & mask_read_3;
 				//end_block = end_block >> 8;
 				
-				method = item->value & mask_read_4;
+				method = hard_disk[item->value] & mask_read_4;
 
 
 				//printf("start block: %d \n", start_block);
@@ -475,7 +475,7 @@ int main(int argc, char** argv) {
 			}
 			else if (method == 2) //linked
 			{
-				linked_read(hard_disk);
+				linked_read(file_name);
 			}
 			else if (method == 3) // indexed
 			{
