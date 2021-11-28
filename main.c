@@ -186,15 +186,6 @@ void sequential_allocation(int files[], int content[], int filesLength, int* _st
 						++index; ++j;
 						printf("Successfully sequentially allocated! \n");
 					}
-
-					if (blocksNeeded <= 1)
-					{
-						*_endBlock = *_startBlock;
-					}
-					else
-					{
-						*_endBlock = *_startBlock + blocksNeeded -1;
-					}
 					freeSpaceCount = 0;
 					break;
 				}
@@ -278,50 +269,50 @@ void disk_add(int fileName, int startBlock, int endBlock, int method)
 	int i;
 	int temp = 0; 
 
-	// check if there's already 10 files
-	for (i = 0; i < 10; ++i)
+	// check if file already has an entry
+	if (hash_search(fileName) == NULL) // if new entry
 	{
-		if (hard_disk[i] == 0)
+		// check if there's already 10 files
+		for (i = 0; i < 10; ++i)
 		{
-			//add new entry
-
-			// check if file already has an entry
-			if (hash_search(fileName) == NULL) // if new entry
+			// if hard_disk has an empty spot
+			if (hard_disk[i] == 0)
 			{
 				hash_insert(fileName, i); // insert into table
+
+				//add new entry
+				// update start and end block
+				// Bit shifting to store file name, start and end block
+				temp = fileName;
+				temp = temp << 8;
+				temp += startBlock;
+				temp = temp << 8;
+				temp += endBlock;
+				temp = temp << 8;
+				temp += method;
+
+				hard_disk[i] = temp;
+
+				return;
 			}
-			// update start and end block
-			// Bit shifting to store file name, start and end block
-			temp = fileName;
-			temp = temp << 8;
-			temp += startBlock;
-			temp = temp << 8;
-			temp += endBlock;
-			temp = temp << 8;
-			temp += method;
-
-			hard_disk[i] = temp;
-			// TEST
-			//printf("binary: %d \n", temp);
-			//a = test & mask_1;
-			//a = a >> 24;
-			//printf("test a: %d \n", a);
-
-			//a = test & mask_2;
-			//a = a >> 16;
-			//printf("test a: %d \n", a);
-
-			//a = test & mask_3;
-			//a = a >> 8;
-			//printf("test a: %d \n", a);
-			// TEST
-			return NULL;
-		}
-		else
-		{
-			continue;
 		}
 	}
+	else // if already exists
+	{
+		i = hash_search(fileName)->value;
+
+		temp = fileName;
+		temp = temp << 8;
+		temp += startBlock;
+		temp = temp << 8;
+		temp += endBlock;
+		temp = temp << 8;
+		temp += method;
+
+		hard_disk[i] = temp;
+	}
+
+	
 }
 
 
@@ -407,10 +398,25 @@ void indexed_read(int fileName)
 	int start_block = 0;
 	int end_block = 0;
 
+	int arr[50] = { 0 };
+
 	start_block = hard_disk[item->value] & mask_read_2;
 	start_block = start_block >> 16;
 	start_block = hard_disk[item->value] & mask_read_3;
 	end_block = end_block >> 8;
+
+	// get the indexes that files are stored in
+	int current_block = start_block;
+	int i = 0;
+	while (current_block != end_block)
+	{
+		//start_index = current_block * 5;
+		/*for (i = start_index; i < start_index + 5; ++i)
+		{
+			printf("File content at disk index %d: %d \n", i, hard_disk[i]);
+		}
+		current_block = hard_disk[i];*/
+	}
 
 
 }
@@ -418,13 +424,34 @@ void indexed_read(int fileName)
 
 void contiguous_delete(int fileName)
 {
+	struct MapItem* item = hash_search(fileName);
 
+	int start_block = 0;
+	int end_block = 0;
+
+	start_block = hard_disk[item->value] & mask_read_2;
+	start_block = start_block >> 16;
+	end_block = hard_disk[item->value] & mask_read_3;
+	end_block = end_block >> 8;
+
+	int start_index = start_block * 5;
+	int end_index = (end_block * 5) + 5;
+
+	for (int i = start_index; i < end_index; ++i)
+	{
+		hard_disk[i] = 0;
+	}
+
+	hash_delete(fileName);
+	printf("File %d deleted. \n", fileName);
 }
 
 
 void linked_delete(int fileName)
 {
 	struct MapItem* item = hash_search(fileName);
+
+	int disk_index = item->value;
 
 	int start_block = 0;
 	int end_block = 0;
@@ -458,6 +485,7 @@ void linked_delete(int fileName)
 		}
 	}
 
+	hard_disk[disk_index] = 0;
 	hash_delete(fileName);
 	printf("File %d deleted. \n", fileName);
 }
@@ -470,7 +498,27 @@ void indexed_delete(int fileName)
 
 void disk_map()
 {
+	int index = 0, blockNum = 0, start_block = 0, end_block = 0, file_name = 0;
 
+	printf("Index\tBlock\tFile Data\n");
+	for (index = 0; index < 500; ++index)
+	{
+		if (index != 0 && index % 5 == 0)
+			++blockNum;
+
+		if (blockNum >= 0 && blockNum < 2 && hard_disk[index] != 0)
+		{
+			file_name = hard_disk[index] & mask_read_1;
+			file_name = file_name >> 24;
+			start_block = hard_disk[index] & mask_read_2;
+			start_block = start_block >> 16;
+			end_block = hard_disk[index] & mask_read_3;
+			end_block = end_block >> 8;
+			printf("%d\t%d\t%d, %d, %d\n", index, blockNum, file_name, start_block, end_block);
+		}
+		else
+			printf("%d\t%d\t%d\n", index, blockNum, hard_disk[index]);
+	}
 }
 
 
@@ -551,12 +599,6 @@ int main(int argc, char** argv) {
 			int method = 0;
 			if (item != NULL)
 			{
-				
-				//start_block = hard_disk[item->value] & mask_read_2;
-				//start_block = start_block >> 16;
-
-				//start_block = hard_disk[item->value] & mask_read_3;
-				//end_block = end_block >> 8;
 				
 				method = hard_disk[item->value] & mask_read_4;
 
@@ -662,7 +704,7 @@ int main(int argc, char** argv) {
 
 
 
-
+	disk_map();
 
 
 	return -1;
