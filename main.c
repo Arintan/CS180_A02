@@ -267,7 +267,7 @@ void linked_allocation(int files[], int content[], int filesLength, int* _startB
 void disk_add(int fileName, int startBlock, int endBlock, int method)
 {
 	int i;
-	int temp = 0;
+	int temp = 0; 
 
 	// check if file already has an entry
 	if (hash_search(fileName) == NULL) // if new entry
@@ -310,8 +310,11 @@ void disk_add(int fileName, int startBlock, int endBlock, int method)
 		temp += method;
 
 		hard_disk[i] = temp;
-	}	
+	}
+
+	
 }
+
 
 void contiguous_read(int fileName)
 {
@@ -385,7 +388,6 @@ void linked_read(int fileName)
 		}
 	}
 
-
 }
 
 void indexed_read(int fileName)
@@ -393,36 +395,60 @@ void indexed_read(int fileName)
 	struct MapItem* item = hash_search(fileName);
 
 	int start_block = 0;
-	int end_block = 0;
-
-	int arr[50] = { 0 };
+	int start_index = 0;
 
 	start_block = hard_disk[item->value] & mask_read_2;
 	start_block = start_block >> 16;
-	start_block = hard_disk[item->value] & mask_read_3;
-	end_block = end_block >> 8;
+
 
 	// get the indexes that files are stored in
 	int current_block = start_block;
-	int i = 0;
-	while (current_block != end_block)
+	int i = 0; // iterate through the index block
+
+	start_index = current_block * 5;
+	int element = 0;
+	for (i = start_index; i < start_index + 5; ++i)
 	{
-		//start_index = current_block * 5;
-		/*for (i = start_index; i < start_index + 5; ++i)
+		element = start_index * 5;
+		// iterate the actual elements
+		for (int j = 0; j < 5; ++j)
 		{
-			printf("File content at disk index %d: %d \n", i, hard_disk[i]);
+			printf("File content at disk index %d: %d \n", element + j, hard_disk[element + j]);
 		}
-		current_block = hard_disk[i];*/
 	}
 
-
 }
+
+
+//void indexed_read(int fileName)
+//{
+//	struct MapItem* item = hash_search(fileName);
+//	int start_block = 0;
+//	int end_block = 0;
+//	int arr[50] = { 0 };
+//	start_block = hard_disk[item->value] & mask_read_2;
+//	start_block = start_block >> 16;
+//	start_block = hard_disk[item->value] & mask_read_3;
+//	end_block = end_block >> 8;
+//	// get the indexes that files are stored in
+//	int current_block = start_block;
+//	int i = 0;
+//	while (current_block != end_block)
+//	{
+//		//start_index = current_block * 5;
+//		/*for (i = start_index; i < start_index + 5; ++i)
+//		{
+//			printf("File content at disk index %d: %d \n", i, hard_disk[i]);
+//		}
+//		current_block = hard_disk[i];*/
+//	}
+//}
 
 
 void contiguous_delete(int fileName)
 {
 	struct MapItem* item = hash_search(fileName);
-
+	int disk_index = item->value;
 	int start_block = 0;
 	int end_block = 0;
 
@@ -439,6 +465,7 @@ void contiguous_delete(int fileName)
 		hard_disk[i] = 0;
 	}
 
+	hard_disk[disk_index] = 0;
 	hash_delete(fileName);
 	printf("File %d deleted. \n", fileName);
 }
@@ -447,9 +474,7 @@ void contiguous_delete(int fileName)
 void linked_delete(int fileName)
 {
 	struct MapItem* item = hash_search(fileName);
-
 	int disk_index = item->value;
-
 	int start_block = 0;
 	int end_block = 0;
 
@@ -490,7 +515,34 @@ void linked_delete(int fileName)
 
 void indexed_delete(int fileName)
 {
+	struct MapItem* item = hash_search(fileName);
+	int disk_index = item->value;
+	int start_block = 0;
 
+	start_block = hard_disk[item->value] & mask_read_2;
+	start_block = start_block >> 16;
+
+	int start_index = 0;
+
+	// get the indexes that files are stored in
+	int current_block = start_block;
+	int i = 0; // iterate through the index block
+
+	start_index = current_block * 5;
+	int element = 0;
+	for (i = start_index; i < start_index + 5; ++i)
+	{
+		element = start_index * 5;
+		// iterate the actual elements
+		for (int j = 0; j < 5; ++j)
+		{
+			hard_disk[element + j] = 0;
+		}
+	}
+
+	hard_disk[disk_index] = 0;
+	hash_delete(fileName);
+	printf("File %d deleted. \n", fileName);
 }
 
 void disk_map()
@@ -581,7 +633,9 @@ int main(int argc, char** argv) {
 				break;
 			}
 			else if (atoi(token) == 0)
+			{
 				break;
+			}
 			file_content[i] = atoi(token);
 			printf("file content at %d: %d \n", i, file_content[i]);
 			++i;
@@ -598,13 +652,7 @@ int main(int argc, char** argv) {
 			int method = 0;
 			if (item != NULL)
 			{
-				
 				method = hard_disk[item->value] & mask_read_4;
-
-
-				//printf("start block: %d \n", start_block);
-				//printf("end block: %d \n", end_block);
-				printf("alloc method: %d \n", method);
 
 			}
 			else
@@ -622,7 +670,7 @@ int main(int argc, char** argv) {
 			}
 			else if (method == 3) // indexed
 			{
-
+				indexed_read(file_name);
 			}
 
 		}
@@ -648,7 +696,6 @@ int main(int argc, char** argv) {
 				printf("start block: %d \n", start_block);
 				printf("end block: %d \n", end_block);
 				printf("alloc method: %d \n", method);
-
 			}
 			else
 			{
@@ -665,11 +712,8 @@ int main(int argc, char** argv) {
 			}
 			else if (method == 3) // indexed
 			{
-
+				indexed_delete(file_name);
 			}
-
-
-
 
 		}
 		else if (insertion_algo == 1)
@@ -701,7 +745,10 @@ int main(int argc, char** argv) {
 		i = 0;
 	}
 
+
+
 	disk_map();
+
 
 	return -1;
 
