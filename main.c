@@ -125,40 +125,96 @@ void hash_delete(int key)
 
 
 // Contiguous
-
-void contiguous_allocation(int files[], int content[], int startBlock, int filesLength) 
+void sequential_allocation(int files[], int content[], int filesLength, int* _startBlock, int* _endBlock)
 {
-	int flag = 0, j, k, ch;
-	int start = startBlock;
-	int total_size = startBlock + filesLength;
-	printf("Enter the starting block and the length of the files: ");
-	//scanf("%d%d", &startBlock, &len);
-	for (j = start; j < total_size; ++j) 
+	int maxBlocks = 100;
+	int filledBlocks[100];
+	int flag = 0, len, k, p;
+	int start, index, count = filesLength, entriesPerBlock = 5, i = 0, j = 0;
+	int blocksNeeded = 0;
+	int freeSpaceCount = 0;
+	int currentBlockSpace = 0;
+
+	printf("Enter starting block: ");
+	scanf("%d", &start);
+	*_startBlock = start;
+	//Search thru the 100 blocks, j is index of current block
+	//for (j = _startBlock; j < _endBlock; j++)
+	//{
+	//	//If there is free space in that block
+	//	if (filledBlocks[j] == NULL)
+	//	{
+	//		for (k = 0; k < 5; k++)
+	//		{
+	//			hash_insert(j, i);
+	//			//insert here!
+	//		}
+	//	}
+	//}
+
+	index = start * entriesPerBlock;
+
+
+	//just nice multiples of 5 elements 
+	if (count % 5 == 0)
 	{
-		if (files[j] == 0)
-			flag++;
+		blocksNeeded = count /5;
 	}
-	if (filesLength == flag) {
-		for (k = startBlock; k < total_size; ++k) 
+	//not nice 
+	else 
+	{
+		blocksNeeded = (count / 5) + 1;
+	}
+
+	if (files[index] == 0)
+	{
+		for (i = index; i < index + entriesPerBlock; ++i)
 		{
-			if (files[k] == 0) {
-				files[k] = 1;
-				printf("%d\t%d\n", k, files[k]);
+			//only if inside is empty
+			if (files[i] == 0)
+			{
+				freeSpaceCount++;
+				currentBlockSpace = freeSpaceCount / 5;
+
+
+				if (freeSpaceCount == count)
+				{
+					for (p = 0; p < count; ++p)
+					{
+
+						files[index] = content[j];
+						++index; ++j;
+						printf("Successfully sequentially allocated! \n");
+					}
+					freeSpaceCount = 0;
+					break;
+				}
+					//else
+					//{
+					//	printf("Not enough space in this block for sequantial allocation. Enter next starting block: \n");
+					//	scanf("%d", &start);
+					//	files[index + entriesPerBlock - 1] = start;
+					//	freeSpaceCount = 0;
+					//	continue;
+					//}
+			}
+			else
+			{
+				freeSpaceCount = 0;
 			}
 		}
-		if (k != (total_size - 1))
-			printf("The file is allocated to the disk\n");
+
+		//if (count != 0)
+		//{
+		//	printf("Block full. Enter next starting block: ");
+		//	scanf("%d", &start);
+		//	files[index + entriesPerBlock - 1] = start;
+		//}
 	}
 	else
-		printf("The file is not allocated to the disk\n");
-	//printf("Do you want to enter more files?\n");
-	//printf("Press 1 for YES, 0 for NO: ");
-	//scanf("%d", &ch);
-	//if (ch == 1)
-	//	contiguous_allocation(files);
-	//else
-	//	exit(0);
-	return;
+	{
+		printf("Block %d has already been allocated.\n", start);
+	}
 }
 
 
@@ -176,8 +232,6 @@ void linked_allocation(int files[], int content[], int filesLength, int* _startB
 		{
 			if (files[i] == 0)
 			{
-				printf("AAAAAAA\n");
-
 				if (count != 0)
 				{
 					files[i] = content[j];
@@ -188,7 +242,6 @@ void linked_allocation(int files[], int content[], int filesLength, int* _startB
 				{
 					files[i] = -1;
 					*_endBlock = start;
-					printf("_endBlock = %d\n", *_endBlock);
 					break;
 				}
 			}
@@ -219,14 +272,14 @@ void disk_add(int fileName, int startBlock, int endBlock, int method)
 	// check if file already has an entry
 	if (hash_search(fileName) == NULL) // if new entry
 	{
-		hash_insert(fileName, i); // insert into table
-
 		// check if there's already 10 files
 		for (i = 0; i < 10; ++i)
 		{
 			// if hard_disk has an empty spot
 			if (hard_disk[i] == 0)
 			{
+				hash_insert(fileName, i); // insert into table
+
 				//add new entry
 				// update start and end block
 				// Bit shifting to store file name, start and end block
@@ -241,10 +294,6 @@ void disk_add(int fileName, int startBlock, int endBlock, int method)
 				hard_disk[i] = temp;
 
 				return;
-			}
-			else
-			{
-				continue;
 			}
 		}
 	}
@@ -261,9 +310,7 @@ void disk_add(int fileName, int startBlock, int endBlock, int method)
 		temp += method;
 
 		hard_disk[i] = temp;
-	}
-
-
+	}	
 }
 
 void contiguous_read(int fileName)
@@ -348,10 +395,25 @@ void indexed_read(int fileName)
 	int start_block = 0;
 	int end_block = 0;
 
+	int arr[50] = { 0 };
+
 	start_block = hard_disk[item->value] & mask_read_2;
 	start_block = start_block >> 16;
 	start_block = hard_disk[item->value] & mask_read_3;
 	end_block = end_block >> 8;
+
+	// get the indexes that files are stored in
+	int current_block = start_block;
+	int i = 0;
+	while (current_block != end_block)
+	{
+		//start_index = current_block * 5;
+		/*for (i = start_index; i < start_index + 5; ++i)
+		{
+			printf("File content at disk index %d: %d \n", i, hard_disk[i]);
+		}
+		current_block = hard_disk[i];*/
+	}
 
 
 }
@@ -359,13 +421,34 @@ void indexed_read(int fileName)
 
 void contiguous_delete(int fileName)
 {
+	struct MapItem* item = hash_search(fileName);
 
+	int start_block = 0;
+	int end_block = 0;
+
+	start_block = hard_disk[item->value] & mask_read_2;
+	start_block = start_block >> 16;
+	end_block = hard_disk[item->value] & mask_read_3;
+	end_block = end_block >> 8;
+
+	int start_index = start_block * 5;
+	int end_index = (end_block * 5) + 5;
+
+	for (int i = start_index; i < end_index; ++i)
+	{
+		hard_disk[i] = 0;
+	}
+
+	hash_delete(fileName);
+	printf("File %d deleted. \n", fileName);
 }
 
 
 void linked_delete(int fileName)
 {
 	struct MapItem* item = hash_search(fileName);
+
+	int disk_index = item->value;
 
 	int start_block = 0;
 	int end_block = 0;
@@ -399,6 +482,7 @@ void linked_delete(int fileName)
 		}
 	}
 
+	hard_disk[disk_index] = 0;
 	hash_delete(fileName);
 	printf("File %d deleted. \n", fileName);
 }
@@ -411,7 +495,7 @@ void indexed_delete(int fileName)
 
 void disk_map()
 {
-	int index = 0, blockNum = 0, start_block = 0, end_block = 0;
+	int index = 0, blockNum = 0, start_block = 0, end_block = 0, file_name = 0;
 
 	printf("Index\tBlock\tFile Data\n");
 	for (index = 0; index < 500; ++index)
@@ -419,18 +503,22 @@ void disk_map()
 		if (index != 0 && index % 5 == 0)
 			++blockNum;
 
-		if (blockNum >= 0 && blockNum < 2 && hash_table[index] != NULL)
+		if (blockNum >= 0 && blockNum < 2 && hard_disk[index] != 0)
 		{
-			start_block = hard_disk[hash_table[index]->value] & mask_read_2;
+			file_name = hard_disk[index] & mask_read_1;
+			file_name = file_name >> 24;
+			start_block = hard_disk[index] & mask_read_2;
 			start_block = start_block >> 16;
-			end_block = hard_disk[hash_table[index]->value] & mask_read_3;
+			end_block = hard_disk[index] & mask_read_3;
 			end_block = end_block >> 8;
-			printf("%d\t%d\t%d, %d, %d\n", index, blockNum, hash_table[index]->key, start_block, end_block);
+			printf("%d\t%d\t%d, %d, %d\n", index, blockNum, file_name, start_block, end_block);
 		}
 		else
 			printf("%d\t%d\t%d\n", index, blockNum, hard_disk[index]);
 	}
 }
+
+
 
 int main(int argc, char** argv) {
 	/* Make your program do whatever you want */
@@ -511,12 +599,6 @@ int main(int argc, char** argv) {
 			if (item != NULL)
 			{
 				
-				//start_block = hard_disk[item->value] & mask_read_2;
-				//start_block = start_block >> 16;
-
-				//start_block = hard_disk[item->value] & mask_read_3;
-				//end_block = end_block >> 8;
-				
 				method = hard_disk[item->value] & mask_read_4;
 
 
@@ -532,7 +614,7 @@ int main(int argc, char** argv) {
 
 			if (method == 1) // contiguous
 			{
-
+				contiguous_read(file_name);
 			}
 			else if (method == 2) //linked
 			{
@@ -575,7 +657,7 @@ int main(int argc, char** argv) {
 
 			if (method == 1) // contiguous
 			{
-
+				contiguous_delete(file_name);
 			}
 			else if (method == 2) //linked
 			{
@@ -593,10 +675,12 @@ int main(int argc, char** argv) {
 		else if (insertion_algo == 1)
 		{
 			//find start block of the file
-			
-			//contiguous_allocation(hard_disk, file_content, startBlock, i)
-			
-			//disk_add()
+			int _startBlock = 0, _endBlock = 0;
+			sequential_allocation(hard_disk, file_content, i, &_startBlock, &_endBlock);
+			printf("startblock: %d\n", _startBlock);
+			printf("endblock: %d\n", _endBlock);
+			disk_add(file_name, _startBlock, _endBlock, 1);
+
 		}
 		else if (insertion_algo == 2)
 		{
@@ -618,9 +702,6 @@ int main(int argc, char** argv) {
 	}
 
 	disk_map();
-
-
-
 
 	return -1;
 
