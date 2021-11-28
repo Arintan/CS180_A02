@@ -125,14 +125,18 @@ void hash_delete(int key)
 
 
 // Contiguous
-void sequential_allocation(int files[], int content[], int startBlock, int filesLength)
+void sequential_allocation(int files[], int content[], int filesLength, int* _startBlock, int* _endBlock)
 {
 	int maxBlocks = 100;
 	int filledBlocks[100];
-	int flag = 0, len, j, k, ch;
+	int flag = 0, len, k, ch;
 	int start, index, count = filesLength, entriesPerBlock = 5, i = 0, j = 0;
 	int blocksNeeded = 0;
 	int freeSpaceCount = 0;
+
+	printf("Enter starting block: ");
+	scanf("%d", &start);
+	*_startBlock = start;
 	//Search thru the 100 blocks, j is index of current block
 	//for (j = _startBlock; j < _endBlock; j++)
 	//{
@@ -181,7 +185,6 @@ void sequential_allocation(int files[], int content[], int startBlock, int files
 			printf("Block full. Enter next starting block: ");
 			scanf("%d", &start);
 			files[index + entriesPerBlock - 1] = start;
-			goto LOOP;
 		}
 	}
 	else
@@ -422,6 +425,7 @@ void linked_delete(int fileName)
 		}
 	}
 
+	hash_delete(fileName);
 	printf("File %d deleted. \n", fileName);
 }
 
@@ -598,7 +602,7 @@ int main(int argc, char** argv) {
 		{
 			//find start block of the file
 			int _startBlock = 0, _endBlock = 0;
-			contiguous_allocation(hard_disk, file_content, i, &_startBlock, &_endBlock);
+			sequential_allocation(hard_disk, file_content, i, &_startBlock, &_endBlock);
 			printf("startblock: %d\n", _startBlock);
 			printf("endblock: %d\n", _endBlock);
 			disk_add(file_name, _startBlock, _endBlock, 1);
