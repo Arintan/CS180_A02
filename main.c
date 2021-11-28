@@ -154,40 +154,64 @@ void sequential_allocation(int files[], int content[], int filesLength, int* _st
 
 	index = start * entriesPerBlock;
 
-	blocksNeeded = count % 5;
+
 	//just nice multiples of 5 elements 
-	if (blocksNeeded == 0)
+	if (count % 5 == 0)
 	{
-		blocksNeeded /= 5;
+		blocksNeeded = count /5;
 	}
 	//not nice 
-	else
+	else 
 	{
-		blocksNeeded /= 5 + 1;
+		blocksNeeded = (count / 5) + 1;
 	}
 
 	if (files[index] == 0)
 	{
 		for (i = index; i < index + entriesPerBlock - 1; ++i)
 		{
+			//only if inside is empty
 			if (files[i] == 0)
 			{
 				freeSpaceCount++;
 				currentBlockSpace = freeSpaceCount / 5;
-				if (currentBlockSpace == blocksNeeded)
+
+
+				if (freeSpaceCount == count)
 				{
-					files[index] = content[j];
-					freeSpaceCount = 0;
+					//freeSpaceCount = 0;
+					//if (currentBlockSpace == blocksNeeded)
+					{
+						files[index] = content[j];
+						freeSpaceCount = 0;
+						printf("Successfully sequentially allocated! \n");
+
+					}
+					//else
+					//{
+					//	printf("Not enough space in this block for sequantial allocation. Enter next starting block: \n");
+					//	scanf("%d", &start);
+					//	files[index + entriesPerBlock - 1] = start;
+					//	freeSpaceCount = 0;
+					//	continue;
+					//}
 				}
+
+
+
+			}
+			else
+			{
+				freeSpaceCount = 0;
 			}
 		}
 
-		if (count != 0)
-		{
-			printf("Block full. Enter next starting block: ");
-			scanf("%d", &start);
-			files[index + entriesPerBlock - 1] = start;
-		}
+		//if (count != 0)
+		//{
+		//	printf("Block full. Enter next starting block: ");
+		//	scanf("%d", &start);
+		//	files[index + entriesPerBlock - 1] = start;
+		//}
 	}
 	else
 	{
