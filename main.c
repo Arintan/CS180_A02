@@ -138,6 +138,19 @@ void sequential_allocation(int files[], int content[], int filesLength, int* _st
 	printf("Enter starting block: ");
 	scanf("%d", &start);
 	*_startBlock = start;
+	//Search thru the 100 blocks, j is index of current block
+	//for (j = _startBlock; j < _endBlock; j++)
+	//{
+	//	//If there is free space in that block
+	//	if (filledBlocks[j] == NULL)
+	//	{
+	//		for (k = 0; k < 5; k++)
+	//		{
+	//			hash_insert(j, i);
+	//			//insert here!
+	//		}
+	//	}
+	//}
 
 	index = start * entriesPerBlock;
 
@@ -173,18 +186,17 @@ void sequential_allocation(int files[], int content[], int filesLength, int* _st
 						++index; ++j;
 						printf("Successfully sequentially allocated! \n");
 					}
-
-					if (blocksNeeded <= 1)
-					{
-						*_endBlock = *_startBlock;
-					}
-					else
-					{
-						*_endBlock = *_startBlock + blocksNeeded - 1;
-					}
 					freeSpaceCount = 0;
 					break;
 				}
+				//else
+				//{
+				//	printf("Not enough space in this block for sequantial allocation. Enter next starting block: \n");
+				//	scanf("%d", &start);
+				//	files[index + entriesPerBlock - 1] = start;
+				//	freeSpaceCount = 0;
+				//	continue;
+				//}
 			}
 			else
 			{
@@ -192,7 +204,12 @@ void sequential_allocation(int files[], int content[], int filesLength, int* _st
 			}
 		}
 
-
+		//if (count != 0)
+		//{
+		//	printf("Block full. Enter next starting block: ");
+		//	scanf("%d", &start);
+		//	files[index + entriesPerBlock - 1] = start;
+		//}
 	}
 	else
 	{
@@ -250,23 +267,29 @@ void indexed_allocation(int files[], int content[], int filesLength, int* _index
 	int start, index, indexblock = 0, count = filesLength, entriesPerBlock = 5, i = 0, j = 0, k = 0;
 
 	// user decide where index block position
-	if (*_indexBlock == -1)
-	{
-		//printf("start %d\n", *_indexBlock);
-		printf("Enter index block: ");
-		scanf("%d", &indexblock);
-		*_indexBlock = indexblock;
-		*_startBlock = indexblock;
-		*_endBlock = indexblock;
+	//if (*_indexBlock == -1)
+	//{
+	//	//printf("start %d\n", *_indexBlock);
+	//	printf("Enter index block: ");
+	//	scanf("%d", &indexblock);
+	//	*_indexBlock = indexblock;
+	//	*_startBlock = indexblock;
+	//	*_endBlock = indexblock;
 
-		//printf("end %d\n", *_indexBlock);
-	}
-	else
-	{
-		indexblock = *_indexBlock;
-		*_startBlock = indexblock;
-		*_endBlock = indexblock;
-	}
+	//	//printf("end %d\n", *_indexBlock);
+	//}
+	//else
+	//{
+	//	indexblock = *_indexBlock;
+	//	*_startBlock = indexblock;
+	//	*_endBlock = indexblock;
+	//}
+
+	printf("Enter index block: ");
+	scanf("%d", &indexblock);
+	*_indexBlock = indexblock;
+	*_startBlock = indexblock;
+	*_endBlock = indexblock;
 
 LOOP: printf("Enter starting block: ");
 	scanf("%d", &start);
@@ -275,17 +298,28 @@ LOOP: printf("Enter starting block: ");
 	if (files[index] == 0)
 	{
 		// insert block to insert block
-		for (i = indexblock; i < indexblock + entriesPerBlock - 1; ++i)
-		{
-			if (files[*_indexBlock] == -1)
-			{
-				files[*_indexBlock] = index;
-				//printf("indexblock %d\n", files[*_indexBlock]);
+		//for (i = indexblock; i < indexblock + entriesPerBlock - 1; ++i)
+		//{
+		//	if (files[*_indexBlock * 5] == 0)
+		//	{
+		//		files[*_indexBlock * 5] = start;
+		//		//printf("indexblock %d\n", files[*_indexBlock]);
 
-				*_endBlock = i;
-				//printf("endblock %d\n", *_endBlock);
+		//		*_endBlock = i;
+		//		//printf("endblock %d\n", *_endBlock);
+		//	}
+		//}
+		for (i = 0; i < 5; ++i)
+		{
+			if (files[*_indexBlock * 5 + i] == 0)
+			{
+				files[*_indexBlock * 5 + i] = start;
+				break;
+				//printf("indexblock %d\n", files[*_indexBlock]);
 			}
 		}
+
+
 		//insert entries to block
 		for (i = index; i < index + entriesPerBlock; ++i)
 		{
@@ -384,7 +418,11 @@ void contiguous_read(int fileName)
 	{
 		if (hard_disk[i] > 0)
 		{
-			printf("File content at disk index %d: %d \n", i, hard_disk[i]);
+			printf("File content at disk index %d: %d", i, hard_disk[i]);
+		}
+		else
+		{
+			continue;
 		}
 	}
 
@@ -453,14 +491,19 @@ void indexed_read(int fileName)
 	int element = 0;
 	for (i = start_index; i < start_index + 5; ++i)
 	{
-		element = start_index * 5;
-		// iterate the actual elements
-		for (int j = 0; j < 5; ++j)
+		if (hard_disk[i] != 0)
 		{
-			printf("File content at disk index %d: %d \n", element + j, hard_disk[element + j]);
+			element = hard_disk[i] * 5;
+			// iterate the actual elements
+			for (int j = 0; j < 5; ++j)
+			{
+				if (hard_disk[element + j] > 0)
+				{
+					printf("File content at disk index %d: %d \n", element + j, hard_disk[element + j]);
+				}
+			}
 		}
 	}
-
 }
 
 
@@ -567,6 +610,7 @@ void indexed_delete(int fileName)
 	start_block = start_block >> 16;
 
 	int start_index = 0;
+	int element_index = 0;
 
 	// get the indexes that files are stored in
 	int current_block = start_block;
@@ -574,15 +618,25 @@ void indexed_delete(int fileName)
 
 	start_index = current_block * 5;
 	int element = 0;
+
 	for (i = start_index; i < start_index + 5; ++i)
 	{
-		element = start_index * 5;
-		// iterate the actual elements
+		element_index = hard_disk[start_index];
+		hard_disk[start_index] = 0;
 		for (int j = 0; j < 5; ++j)
 		{
-			hard_disk[element + j] = 0;
+			hard_disk[element_index * 5 + j] = 0;
 		}
 	}
+	//for (i = start_index; i < start_index + 5; ++i)
+	//{
+	//	element = i;
+	//	// iterate the actual elements
+	//	for (int j = 0; j < 5; ++j)
+	//	{
+	//		hard_disk[element + j] = 0;
+	//	}
+	//}
 
 	hard_disk[disk_index] = 0;
 	hash_delete(fileName);
@@ -788,7 +842,7 @@ int main(int argc, char** argv) {
 			indexed_allocation(hard_disk, file_content, i, &_indexBlock, &_startBlock, &_endBlock);
 			printf("startblock: %d\n", _startBlock);
 			printf("endblock: %d\n", _endBlock);
-			disk_add(file_name, _startBlock, _endBlock, 3);
+			disk_add(file_name, _startBlock, _startBlock, 3);
 		}
 		i = 0;
 	}
