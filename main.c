@@ -138,19 +138,6 @@ void sequential_allocation(int files[], int content[], int filesLength, int* _st
 	printf("Enter starting block: ");
 	scanf("%d", &start);
 	*_startBlock = start;
-	//Search thru the 100 blocks, j is index of current block
-	//for (j = _startBlock; j < _endBlock; j++)
-	//{
-	//	//If there is free space in that block
-	//	if (filledBlocks[j] == NULL)
-	//	{
-	//		for (k = 0; k < 5; k++)
-	//		{
-	//			hash_insert(j, i);
-	//			//insert here!
-	//		}
-	//	}
-	//}
 
 	index = start * entriesPerBlock;
 
@@ -158,10 +145,10 @@ void sequential_allocation(int files[], int content[], int filesLength, int* _st
 	//just nice multiples of 5 elements 
 	if (count % 5 == 0)
 	{
-		blocksNeeded = count /5;
+		blocksNeeded = count / 5;
 	}
 	//not nice 
-	else 
+	else
 	{
 		blocksNeeded = (count / 5) + 1;
 	}
@@ -186,17 +173,18 @@ void sequential_allocation(int files[], int content[], int filesLength, int* _st
 						++index; ++j;
 						printf("Successfully sequentially allocated! \n");
 					}
+
+					if (blocksNeeded <= 1)
+					{
+						*_endBlock = *_startBlock;
+					}
+					else
+					{
+						*_endBlock = *_startBlock + blocksNeeded - 1;
+					}
 					freeSpaceCount = 0;
 					break;
 				}
-					//else
-					//{
-					//	printf("Not enough space in this block for sequantial allocation. Enter next starting block: \n");
-					//	scanf("%d", &start);
-					//	files[index + entriesPerBlock - 1] = start;
-					//	freeSpaceCount = 0;
-					//	continue;
-					//}
 			}
 			else
 			{
@@ -204,12 +192,7 @@ void sequential_allocation(int files[], int content[], int filesLength, int* _st
 			}
 		}
 
-		//if (count != 0)
-		//{
-		//	printf("Block full. Enter next starting block: ");
-		//	scanf("%d", &start);
-		//	files[index + entriesPerBlock - 1] = start;
-		//}
+
 	}
 	else
 	{
@@ -335,11 +318,7 @@ void contiguous_read(int fileName)
 	{
 		if (hard_disk[i] > 0)
 		{
-			printf("File content at disk index %d: %d", i, hard_disk[i]);
-		}
-		else
-		{
-			continue;
+			printf("File content at disk index %d: %d \n", i, hard_disk[i]);
 		}
 	}
 
