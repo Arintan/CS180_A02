@@ -207,13 +207,13 @@ void linked_allocation(int files[], int content[], int filesLength, int* _startB
 			{
 				if (count != 0)
 				{
-					files[index] = content[j];
+					files[i] = content[j];
 					++j;
 					--count;
 				}
 				else
 				{
-					files[index] = -1;
+					files[i] = -1;
 					*_endBlock = start;
 					break;
 				}
@@ -388,7 +388,41 @@ void contiguous_delete(int fileName)
 
 void linked_delete(int fileName)
 {
+	struct MapItem* item = hash_search(fileName);
 
+	int start_block = 0;
+	int end_block = 0;
+
+	start_block = hard_disk[item->value] & mask_read_2;
+	start_block = start_block >> 16;
+	end_block = hard_disk[item->value] & mask_read_3;
+	end_block = end_block >> 8;
+
+
+	int start_index = 0;
+	int current_block = start_block;
+	int i = 0;
+	while (current_block != end_block)
+	{
+		start_index = current_block * 5;
+		for (i = start_index; i < start_index + 4; ++i)
+		{
+			hard_disk[i] = 0;
+		}
+		current_block = hard_disk[i];
+		hard_disk[i] = 0;
+	}
+
+	if (current_block == end_block)
+	{
+		start_index = current_block * 5;
+		for (i = start_index; i < start_index + 5; ++i)
+		{
+			hard_disk[i] = 0;
+		}
+	}
+
+	printf("File %d deleted. \n", fileName);
 }
 
 
@@ -524,13 +558,13 @@ int main(int argc, char** argv) {
 			if (item != NULL)
 			{
 
-				start_block = item->value & mask_read_2;
+				start_block = hard_disk[item->value] & mask_read_2;
 				start_block = start_block >> 16;
 
-				start_block = item->value & mask_read_3;
+				start_block = hard_disk[item->value] & mask_read_3;
 				end_block = end_block >> 8;
 
-				method = item->value & mask_read_4;
+				method = hard_disk[item->value] & mask_read_4;
 
 
 				printf("start block: %d \n", start_block);
@@ -549,7 +583,7 @@ int main(int argc, char** argv) {
 			}
 			else if (method == 2) //linked
 			{
-
+				linked_delete(file_name);
 			}
 			else if (method == 3) // indexed
 			{
