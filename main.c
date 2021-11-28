@@ -43,7 +43,7 @@ int hash_code(int key) {
 
 struct MapItem* hash_search(int key)
 {
-	int index = hashCode(key);
+	int index = hash_code(key);
 
 	//move in array until an empty 
 	while (hash_table[index] != NULL) 
@@ -70,7 +70,7 @@ void hash_insert(int key, int value)
 	struct MapItem* item = (struct MapItem*)malloc(sizeof(struct MapItem));
 	if (item == NULL)
 	{
-		return NULL;
+		return;
 	}
 	item->key = key;
 	item->value = value;
@@ -92,7 +92,7 @@ void hash_insert(int key, int value)
 
 void hash_delete(int key)
 {
-	int index = hashCode(key);
+	int index = hash_code(key);
 
 	//move in array until an empty
 	while (hash_table[index] != NULL)
@@ -100,11 +100,12 @@ void hash_delete(int key)
 
 		if (hash_table[index]->key == key)
 		{
-			struct DataItem* temp = hash_table[index];
+			struct MapItem* temp = hash_table[index];
 
 			//assign a dummy item at deleted position
 			hash_table[index] = dummy;
-			return temp;
+			//return temp;
+			return;
 		}
 
 		//go to next cell
@@ -114,7 +115,7 @@ void hash_delete(int key)
 		index %= TABLESIZE;
 	}
 
-	return NULL;
+	//return NULL;
 }
 
 // END OF HASH TABLE
@@ -157,12 +158,77 @@ void contiguous_allocation(int files[], int content[], int startBlock, int files
 	//	contiguous_allocation(files);
 	//else
 	//	exit(0);
-	return;
+	//return;
 }
 
 
 // Linked
+void linked_allocation(int files[], int content[], int filesLength, int* _startBlock, int* _endBlock)
+{
+	/*int startBlock, length = filesLength, i, c;
+	if (files[startBlock] == 0) {
+		for (i = startBlock; i < (startBlock + length); ++i)
+		{
+			if (files[i] == 0) 
+			{
+				files[i] = 1;
+				printf("%d -> %d\n", i, files[i]);
+			}
+			else {
+				printf("The block %d is already allocated \n", i);
+				length++;
+			}
+		}
+	}
+	else
+		printf("The block %d is already allocated \n", startBlock);
+	printf("Do you want to enter more files? \n");
+	printf("Enter 1 for Yes, Enter 0 for No: ");
+	scanf("%d", &c);
+	if (c == 1)
+		linked_allocation(files, content, startBlock, filesLength);
+	else
+		exit(0);*/
 
+	int start, index, count = filesLength, entriesPerBlock = 5, i = 0, j = 0;
+	printf("Enter starting block: ");
+	scanf("%d", &start);
+	*_startBlock = start;
+	LOOP : index = start * entriesPerBlock;
+	if (files[index] == 0)
+	{
+		for (i = index; i < index + entriesPerBlock - 1; ++i)
+		{
+			if (files[i] == 0)
+			{
+				if (count != 0)
+				{
+					files[index] = content[j];
+					++j;
+					--count;
+				}
+				else
+				{
+					files[index] = -1;
+					*_endBlock = start;
+					break;
+				}
+			}
+		}
+
+		if (count != 0)
+		{
+			printf("Block full. Enter next starting block: ");
+			scanf("%d", &start);
+			files[index + entriesPerBlock - 1] = start;
+			goto LOOP;
+		}
+	}
+	else
+	{
+		printf("Block %d has already been allocated.\n", start);
+	}
+}
 // Indexed
 
 
@@ -182,7 +248,7 @@ void disk_add(int fileName, int startBlock, int endBlock)
 			// check if file already has an entry
 			if (hash_search(fileName) == NULL) // if new entry
 			{
-				insert(fileName, hard_disk + i); // insert into table
+				hash_insert(fileName, *(hard_disk + i)); // insert into table
 			}
 			// update start and end block
 			// Bit shifting to store file name, start and end block
@@ -208,7 +274,7 @@ void disk_add(int fileName, int startBlock, int endBlock)
 			//a = a >> 8;
 			//printf("test a: %d \n", a);
 			// TEST
-			return NULL;
+			//return NULL;
 		}
 		else
 		{
@@ -304,8 +370,11 @@ int main(int argc, char** argv) {
 		else if (insertion_algo == 2)
 		{
 			//linked
-
-			//disk_add()
+			int _startBlock = 0, _endBlock = 0;
+			//printf("Enter Start Block: ");
+			//scanf("%d", &_startBlock);
+			linked_allocation(hard_disk, file_content, i, &_startBlock, &_endBlock);
+			disk_add(*hard_disk, _startBlock, _endBlock);
 		}
 		else
 		{
