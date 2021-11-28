@@ -133,6 +133,7 @@ void sequential_allocation(int files[], int content[], int filesLength, int* _st
 	int start, index, count = filesLength, entriesPerBlock = 5, i = 0, j = 0;
 	int blocksNeeded = 0;
 	int freeSpaceCount = 0;
+	int currentBlockSpace = 0;
 
 	printf("Enter starting block: ");
 	scanf("%d", &start);
@@ -172,7 +173,8 @@ void sequential_allocation(int files[], int content[], int filesLength, int* _st
 			if (files[i] == 0)
 			{
 				freeSpaceCount++;
-				if (freeSpaceCount)
+				currentBlockSpace = freeSpaceCount / 5;
+				if (currentBlockSpace == blocksNeeded)
 				{
 					files[index] = content[j];
 					freeSpaceCount = 0;
