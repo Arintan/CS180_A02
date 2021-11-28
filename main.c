@@ -163,7 +163,47 @@ void contiguous_allocation(int files[], int content[], int startBlock, int files
 
 
 // Linked
+void linked_allocation(int files[], int content[], int filesLength, int* _startBlock, int* _endBlock)
+{
+	int start, index, count = filesLength, entriesPerBlock = 5, i = 0, j = 0;
+	printf("Enter starting block: ");
+	scanf("%d", &start);
+	*_startBlock = start;
+	LOOP: index = start * entriesPerBlock;
+	if (files[index] == 0)
+	{
+		for (i = index; i < index + entriesPerBlock - 1; ++i)
+		{
+			if (files[i] == 0)
+			{
+				if (count != 0)
+				{
+					files[index] = content[j];
+					++j;
+					--count;
+				}
+				else
+				{
+					files[index] = -1;
+					*_endBlock = start;
+					break;
+				}
+			}
+		}
 
+		if (count != 0)
+		{
+			printf("Block full. Enter next starting block: ");
+			scanf("%d", &start);
+			files[index + entriesPerBlock - 1] = start;
+			goto LOOP;
+		}
+	}
+	else
+	{
+		printf("Block %d has already been allocated.\n", start);
+	}
+}
 // Indexed
 
 
@@ -434,7 +474,7 @@ int main(int argc, char** argv) {
 			}
 			else if (method == 2) //linked
 			{
-
+				linked_read(hard_disk);
 			}
 			else if (method == 3) // indexed
 			{
@@ -500,8 +540,11 @@ int main(int argc, char** argv) {
 		else if (insertion_algo == 2)
 		{
 			//linked
-
-			//disk_add()
+			int _startBlock = 0, _endBlock = 0;
+			linked_allocation(hard_disk, file_content, i, &_startBlock, &_endBlock);
+			printf("startblock: %d\n", _startBlock);
+			printf("endblock: %d\n", _endBlock);
+			disk_add(*hard_disk, _startBlock, _endBlock);
 		}
 		else
 		{
