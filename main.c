@@ -186,6 +186,15 @@ void sequential_allocation(int files[], int content[], int filesLength, int* _st
 						++index; ++j;
 						printf("Successfully sequentially allocated! \n");
 					}
+
+					if (blocksNeeded <= 1)
+					{
+						*_endBlock = *_startBlock;
+					}
+					else
+					{
+						*_endBlock = *_startBlock + blocksNeeded -1;
+					}
 					freeSpaceCount = 0;
 					break;
 				}
