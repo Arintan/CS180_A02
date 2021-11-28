@@ -71,7 +71,7 @@ void hash_insert(int key, int value)
 	struct MapItem* item = (struct MapItem*)malloc(sizeof(struct MapItem));
 	if (item == NULL)
 	{
-		return NULL;
+		return;
 	}
 	item->key = key;
 	item->value = value;
@@ -101,11 +101,11 @@ void hash_delete(int key)
 
 		if (hash_table[index]->key == key)
 		{
-			struct DataItem* temp = hash_table[index];
+			struct MapItem* temp = hash_table[index];
 
 			//assign a dummy item at deleted position
 			hash_table[index] = dummy;
-			return temp;
+			return;
 		}
 
 		//go to next cell
@@ -115,7 +115,7 @@ void hash_delete(int key)
 		index %= TABLESIZE;
 	}
 
-	return NULL;
+	return;
 }
 
 // END OF HASH TABLE
@@ -176,6 +176,8 @@ void linked_allocation(int files[], int content[], int filesLength, int* _startB
 		{
 			if (files[i] == 0)
 			{
+				printf("AAAAAAA\n");
+
 				if (count != 0)
 				{
 					files[i] = content[j];
@@ -186,6 +188,7 @@ void linked_allocation(int files[], int content[], int filesLength, int* _startB
 				{
 					files[i] = -1;
 					*_endBlock = start;
+					printf("_endBlock = %d\n", *_endBlock);
 					break;
 				}
 			}
@@ -211,54 +214,57 @@ void linked_allocation(int files[], int content[], int filesLength, int* _startB
 void disk_add(int fileName, int startBlock, int endBlock, int method)
 {
 	int i;
-	int temp = 0; 
+	int temp = 0;
 
-	// check if there's already 10 files
-	for (i = 0; i < 10; ++i)
+	// check if file already has an entry
+	if (hash_search(fileName) == NULL) // if new entry
 	{
-		if (hard_disk[i] == 0)
-		{
-			//add new entry
+		hash_insert(fileName, i); // insert into table
 
-			// check if file already has an entry
-			if (hash_search(fileName) == NULL) // if new entry
+		// check if there's already 10 files
+		for (i = 0; i < 10; ++i)
+		{
+			// if hard_disk has an empty spot
+			if (hard_disk[i] == 0)
 			{
-				hash_insert(fileName, i); // insert into table
+				//add new entry
+				// update start and end block
+				// Bit shifting to store file name, start and end block
+				temp = fileName;
+				temp = temp << 8;
+				temp += startBlock;
+				temp = temp << 8;
+				temp += endBlock;
+				temp = temp << 8;
+				temp += method;
+
+				hard_disk[i] = temp;
+
+				return;
 			}
-			// update start and end block
-			// Bit shifting to store file name, start and end block
-			temp = fileName;
-			temp = temp << 8;
-			temp += startBlock;
-			temp = temp << 8;
-			temp += endBlock;
-			temp = temp << 8;
-			temp += method;
-
-			hard_disk[i] = temp;
-			// TEST
-			//printf("binary: %d \n", temp);
-			//a = test & mask_1;
-			//a = a >> 24;
-			//printf("test a: %d \n", a);
-
-			//a = test & mask_2;
-			//a = a >> 16;
-			//printf("test a: %d \n", a);
-
-			//a = test & mask_3;
-			//a = a >> 8;
-			//printf("test a: %d \n", a);
-			// TEST
-			return NULL;
-		}
-		else
-		{
-			continue;
+			else
+			{
+				continue;
+			}
 		}
 	}
-}
+	else // if already exists
+	{
+		i = hash_search(fileName)->value;
 
+		temp = fileName;
+		temp = temp << 8;
+		temp += startBlock;
+		temp = temp << 8;
+		temp += endBlock;
+		temp = temp << 8;
+		temp += method;
+
+		hard_disk[i] = temp;
+	}
+
+
+}
 
 void contiguous_read(int fileName)
 {
@@ -359,7 +365,42 @@ void contiguous_delete(int fileName)
 
 void linked_delete(int fileName)
 {
+	struct MapItem* item = hash_search(fileName);
 
+	int start_block = 0;
+	int end_block = 0;
+
+	start_block = hard_disk[item->value] & mask_read_2;
+	start_block = start_block >> 16;
+	end_block = hard_disk[item->value] & mask_read_3;
+	end_block = end_block >> 8;
+
+
+	int start_index = 0;
+	int current_block = start_block;
+	int i = 0;
+	while (current_block != end_block)
+	{
+		start_index = current_block * 5;
+		for (i = start_index; i < start_index + 4; ++i)
+		{
+			hard_disk[i] = 0;
+		}
+		current_block = hard_disk[i];
+		hard_disk[i] = 0;
+	}
+
+	if (current_block == end_block)
+	{
+		start_index = current_block * 5;
+		for (i = start_index; i < start_index + 5; ++i)
+		{
+			hard_disk[i] = 0;
+		}
+	}
+
+	hash_delete(fileName);
+	printf("File %d deleted. \n", fileName);
 }
 
 
@@ -447,10 +488,12 @@ int main(int argc, char** argv) {
 		token = strtok(NULL, ",");
 		while (token != NULL)
 		{
-			if (strcmp(token, "\n") == 0 || strlen(token) == 0)
+			if (strcmp(token, "\n") == 0 || strlen(token) == 0 || strcmp(token, "0") == 0)
 			{
 				break;
 			}
+			else if (atoi(token) == 0)
+				break;
 			file_content[i] = atoi(token);
 			printf("file content at %d: %d \n", i, file_content[i]);
 			++i;
@@ -511,13 +554,13 @@ int main(int argc, char** argv) {
 			if (item != NULL)
 			{
 
-				start_block = item->value & mask_read_2;
+				start_block = hard_disk[item->value] & mask_read_2;
 				start_block = start_block >> 16;
 
-				start_block = item->value & mask_read_3;
+				start_block = hard_disk[item->value] & mask_read_3;
 				end_block = end_block >> 8;
 
-				method = item->value & mask_read_4;
+				method = hard_disk[item->value] & mask_read_4;
 
 
 				printf("start block: %d \n", start_block);
@@ -536,7 +579,7 @@ int main(int argc, char** argv) {
 			}
 			else if (method == 2) //linked
 			{
-
+				linked_delete(file_name);
 			}
 			else if (method == 3) // indexed
 			{
