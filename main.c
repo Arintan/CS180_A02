@@ -125,40 +125,69 @@ void hash_delete(int key)
 
 
 // Contiguous
-
-void contiguous_allocation(int files[], int content[], int startBlock, int filesLength) 
+void sequential_allocation(int files[], int content[], int startBlock, int filesLength)
 {
-	int flag = 0, j, k, ch;
-	int start = startBlock;
-	int total_size = startBlock + filesLength;
-	printf("Enter the starting block and the length of the files: ");
-	//scanf("%d%d", &startBlock, &len);
-	for (j = start; j < total_size; ++j) 
+	int maxBlocks = 100;
+	int filledBlocks[100];
+	int flag = 0, len, j, k, ch;
+	int start, index, count = filesLength, entriesPerBlock = 5, i = 0, j = 0;
+	int blocksNeeded = 0;
+	int freeSpaceCount = 0;
+	//Search thru the 100 blocks, j is index of current block
+	//for (j = _startBlock; j < _endBlock; j++)
+	//{
+	//	//If there is free space in that block
+	//	if (filledBlocks[j] == NULL)
+	//	{
+	//		for (k = 0; k < 5; k++)
+	//		{
+	//			hash_insert(j, i);
+	//			//insert here!
+	//		}
+	//	}
+	//}
+
+	index = start * entriesPerBlock;
+
+	blocksNeeded = count % 5;
+	//just nice multiples of 5 elements 
+	if (blocksNeeded == 0)
 	{
-		if (files[j] == 0)
-			flag++;
+		blocksNeeded /= 5;
 	}
-	if (filesLength == flag) {
-		for (k = startBlock; k < total_size; ++k) 
+	//not nice 
+	else
+	{
+		blocksNeeded /= 5 + 1;
+	}
+
+	if (files[index] == 0)
+	{
+		for (i = index; i < index + entriesPerBlock - 1; ++i)
 		{
-			if (files[k] == 0) {
-				files[k] = 1;
-				printf("%d\t%d\n", k, files[k]);
+			if (files[i] == 0)
+			{
+				freeSpaceCount++;
+				if (freeSpaceCount)
+				{
+					files[index] = content[j];
+					freeSpaceCount = 0;
+				}
 			}
 		}
-		if (k != (total_size - 1))
-			printf("The file is allocated to the disk\n");
+
+		if (count != 0)
+		{
+			printf("Block full. Enter next starting block: ");
+			scanf("%d", &start);
+			files[index + entriesPerBlock - 1] = start;
+			goto LOOP;
+		}
 	}
 	else
-		printf("The file is not allocated to the disk\n");
-	//printf("Do you want to enter more files?\n");
-	//printf("Press 1 for YES, 0 for NO: ");
-	//scanf("%d", &ch);
-	//if (ch == 1)
-	//	contiguous_allocation(files);
-	//else
-	//	exit(0);
-	return;
+	{
+		printf("Block %d has already been allocated.\n", start);
+	}
 }
 
 
@@ -373,6 +402,8 @@ void disk_map()
 
 }
 
+
+
 int main(int argc, char** argv) {
 	/* Make your program do whatever you want */
 
@@ -471,7 +502,7 @@ int main(int argc, char** argv) {
 
 			if (method == 1) // contiguous
 			{
-
+				contiguous_read(file_name);
 			}
 			else if (method == 2) //linked
 			{
@@ -532,10 +563,12 @@ int main(int argc, char** argv) {
 		else if (insertion_algo == 1)
 		{
 			//find start block of the file
-			
-			//contiguous_allocation(hard_disk, file_content, startBlock, i)
-			
-			//disk_add()
+			int _startBlock = 0, _endBlock = 0;
+			contiguous_allocation(hard_disk, file_content, i, &_startBlock, &_endBlock);
+			printf("startblock: %d\n", _startBlock);
+			printf("endblock: %d\n", _endBlock);
+			disk_add(file_name, _startBlock, _endBlock, 1);
+
 		}
 		else if (insertion_algo == 2)
 		{
