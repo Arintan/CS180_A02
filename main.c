@@ -178,13 +178,13 @@ void linked_allocation(int files[], int content[], int filesLength, int* _startB
 			{
 				if (count != 0)
 				{
-					files[index] = content[j];
+					files[i] = content[j];
 					++j;
 					--count;
 				}
 				else
 				{
-					files[index] = -1;
+					files[i] = -1;
 					*_endBlock = start;
 					break;
 				}
