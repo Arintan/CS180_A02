@@ -236,7 +236,73 @@ void linked_allocation(int files[], int content[], int filesLength, int* _startB
 		printf("Block %d has already been allocated.\n", start);
 	}
 }
+
 // Indexed
+void indexed_allocation(int files[], int content[], int filesLength, int* _indexBlock, int* _startBlock, int* _endBlock)
+{
+	int start, index, indexblock = 0, count = filesLength, entriesPerBlock = 5, i = 0, j = 0, k = 0;
+
+	// user decide where index block position
+	if (*_indexBlock == -1)
+	{
+		//printf("start %d\n", *_indexBlock);
+		printf("Enter index block: ");
+		scanf("%d", &indexblock);
+		*_indexBlock = indexblock; 
+		*_startBlock = indexblock;
+		*_endBlock = indexblock;
+
+		//printf("end %d\n", *_indexBlock);
+	}
+	else
+	{
+		indexblock = *_indexBlock;
+		*_startBlock = indexblock;
+		*_endBlock = indexblock;
+	}
+
+	LOOP: printf("Enter starting block: ");
+	scanf("%d", &start);
+	
+	 index = start * entriesPerBlock;
+	if (files[index] == 0)
+	{
+		// insert block to insert block
+		for (i = indexblock; i < indexblock + entriesPerBlock - 1; ++i)
+		{
+			if (files[*_indexBlock] == -1)
+			{
+				files[*_indexBlock] = index;
+				//printf("indexblock %d\n", files[*_indexBlock]);
+
+				*_endBlock = i;
+				//printf("endblock %d\n", *_endBlock);
+			}
+		}
+		//insert entries to block
+		for (i = index; i < index + entriesPerBlock; ++i)
+		{
+			if (files[i] == 0 && count != 0)
+			{
+				files[i] = content[j];
+				//printf("content %d\n", content[j]);
+				//printf("files %d\n", files[i]);
+				++j;
+				--count;
+			}
+			else
+			{
+				//printf("fail");
+			}
+		}
+	}
+	else
+	{
+		// if block is taken repeat
+		printf("Block %d has already been allocated.\n", start);
+		goto LOOP;
+	}
+}
 
 
 
@@ -379,7 +445,34 @@ void indexed_read(int fileName)
 	start_block = hard_disk[item->value] & mask_read_3;
 	end_block = end_block >> 8;
 
+	int start_index = 0;
+	int current_block = start_block;
+	int i = 0;
+	while (current_block != end_block)
+	{
+		start_index = current_block * 5;
+		for (i = start_index; i < start_index + 4; ++i)
+		{
+			printf("File content at disk index %d: %d \n", i, hard_disk[i]);
+		}
+		current_block = hard_disk[i];
+	}
 
+	if (current_block == end_block)
+	{
+		start_index = current_block * 5;
+		for (i = start_index; i < start_index + 5; ++i)
+		{
+			if (hard_disk[i] > 0)
+			{
+				printf("File content at disk index %d: %d \n", i, hard_disk[i]);
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
 }
 
 
@@ -453,6 +546,7 @@ int main(int argc, char** argv) {
 	int file_name;
 	int file_content[100];
 	int i = 0;
+	int _indexBlock = -1;
 
 
 	// initializing disk
@@ -548,7 +642,7 @@ int main(int argc, char** argv) {
 			}
 			else if (method == 3) // indexed
 			{
-
+				indexed_read(file_name);
 			}
 
 		}
@@ -620,18 +714,15 @@ int main(int argc, char** argv) {
 		else
 		{
 			//indexed
+			int _startBlock = 0, _endBlock = 0;
 
+			indexed_allocation(hard_disk, file_content, i, &_indexBlock, &_startBlock, &_endBlock);
+			printf("startblock: %d\n", _startBlock);
+			printf("endblock: %d\n", _endBlock);
+			disk_add(*hard_disk, _startBlock, _endBlock, 3);
 			//disk_add()
 		}
-
 		i = 0;
 	}
-
-
-
-
-
-
 	return -1;
-
 }
