@@ -127,20 +127,15 @@ void hash_delete(int key)
 // Contiguous
 void sequential_allocation(int files[], int content[], int filesLength, int* _startBlock, int* _endBlock)
 {
-	int maxBlocks = 100;
-	int filledBlocks[100];
-	int flag = 0, len, k, p;
+	int flag = 0, p;
 	int start, index, count = filesLength, entriesPerBlock = 5, i = 0, j = 0;
 	int blocksNeeded = 0;
 	int freeSpaceCount = 0;
 	int currentBlockSpace = 0;
-
 	printf("Enter starting block: ");
 	scanf("%d", &start);
+	//start = 1;
 	*_startBlock = start;
-
-	index = start * entriesPerBlock;
-
 
 	//just nice multiples of 5 elements 
 	if (count % 5 == 0)
@@ -152,51 +147,69 @@ void sequential_allocation(int files[], int content[], int filesLength, int* _st
 	{
 		blocksNeeded = (count / 5) + 1;
 	}
+	//fill in some blocks to test 
+	//for (len = 50; len < 66; ++len)
+	//{
+	//	files[len] = 10;
+	//}
 
+LOOP: 
+	index = start * entriesPerBlock;
 	if (files[index] == 0)
 	{
-		for (i = index; i < index + entriesPerBlock; ++i)
+		for (i = index; i < index + count; ++i)
 		{
-			//only if inside is empty
 			if (files[i] == 0)
 			{
 				freeSpaceCount++;
 				currentBlockSpace = freeSpaceCount / 5;
 
-
 				if (freeSpaceCount == count)
 				{
 					for (p = 0; p < count; ++p)
 					{
-
 						files[index] = content[j];
 						++index; ++j;
-						printf("Successfully sequentially allocated! \n");
 					}
 
 					if (blocksNeeded <= 1)
 					{
+						*_startBlock = start;
 						*_endBlock = *_startBlock;
 					}
 					else
 					{
+						*_startBlock = start;
+
 						*_endBlock = *_startBlock + blocksNeeded - 1;
 					}
 					freeSpaceCount = 0;
+					printf("Successfully sequentially allocated! \n");
 					break;
 				}
+
 			}
 			else
 			{
 				freeSpaceCount = 0;
+				switch (i % 5)
+				{
+				case 0: i += 5; break;
+				case 1: i += 4; break;
+				case 2: i += 3; break;
+				case 3: i += 2; break;
+				case 4: i += 1; break;
+				}
+				continue;
 			}
 		}
-
-
 	}
 	else
 	{
-		printf("Block %d has already been allocated.\n", start);
+		freeSpaceCount = 0;
+		printf("Block %d has already been allocated. Allocating to another block: \n", start);
+		start++;
+		goto LOOP;
 	}
 }
 
