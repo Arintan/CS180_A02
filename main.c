@@ -138,19 +138,6 @@ void sequential_allocation(int files[], int content[], int filesLength, int* _st
 	printf("Enter starting block: ");
 	scanf("%d", &start);
 	*_startBlock = start;
-	//Search thru the 100 blocks, j is index of current block
-	//for (j = _startBlock; j < _endBlock; j++)
-	//{
-	//	//If there is free space in that block
-	//	if (filledBlocks[j] == NULL)
-	//	{
-	//		for (k = 0; k < 5; k++)
-	//		{
-	//			hash_insert(j, i);
-	//			//insert here!
-	//		}
-	//	}
-	//}
 
 	index = start * entriesPerBlock;
 
@@ -186,17 +173,18 @@ void sequential_allocation(int files[], int content[], int filesLength, int* _st
 						++index; ++j;
 						printf("Successfully sequentially allocated! \n");
 					}
+
+					if (blocksNeeded <= 1)
+					{
+						*_endBlock = *_startBlock;
+					}
+					else
+					{
+						*_endBlock = *_startBlock + blocksNeeded - 1;
+					}
 					freeSpaceCount = 0;
 					break;
 				}
-				//else
-				//{
-				//	printf("Not enough space in this block for sequantial allocation. Enter next starting block: \n");
-				//	scanf("%d", &start);
-				//	files[index + entriesPerBlock - 1] = start;
-				//	freeSpaceCount = 0;
-				//	continue;
-				//}
 			}
 			else
 			{
@@ -204,12 +192,7 @@ void sequential_allocation(int files[], int content[], int filesLength, int* _st
 			}
 		}
 
-		//if (count != 0)
-		//{
-		//	printf("Block full. Enter next starting block: ");
-		//	scanf("%d", &start);
-		//	files[index + entriesPerBlock - 1] = start;
-		//}
+
 	}
 	else
 	{
@@ -401,6 +384,7 @@ void disk_add(int fileName, int startBlock, int endBlock, int method)
 
 void contiguous_read(int fileName)
 {
+	int counter = 0;
 	struct MapItem* item = hash_search(fileName);
 
 	int start_block = 0;
@@ -419,18 +403,20 @@ void contiguous_read(int fileName)
 		if (hard_disk[i] > 0)
 		{
 			printf("File content at disk index %d: %d", i, hard_disk[i]);
+			++counter;
 		}
 		else
 		{
 			continue;
 		}
 	}
-
+	printf("Total number of printed content: %d \n", counter);
 
 }
 
 void linked_read(int fileName)
 {
+	int counter = 0;
 	struct MapItem* item = hash_search(fileName);
 
 	int start_block = 0;
@@ -463,6 +449,7 @@ void linked_read(int fileName)
 			if (hard_disk[i] > 0)
 			{
 				printf("File content at disk index %d: %d \n", i, hard_disk[i]);
+				++counter;
 			}
 			else
 			{
@@ -470,11 +457,13 @@ void linked_read(int fileName)
 			}
 		}
 	}
+	printf("Total number of printed content: %d \n", counter);
 
 }
 
 void indexed_read(int fileName)
 {
+	int counter = 0;
 	struct MapItem* item = hash_search(fileName);
 
 	int start_block = 0;
@@ -500,10 +489,12 @@ void indexed_read(int fileName)
 				if (hard_disk[element + j] > 0)
 				{
 					printf("File content at disk index %d: %d \n", element + j, hard_disk[element + j]);
+					++counter;
 				}
 			}
 		}
 	}
+	printf("Total number of printed content: %d \n", counter);
 }
 
 
