@@ -402,7 +402,7 @@ void contiguous_read(int fileName)
 	{
 		if (hard_disk[i] > 0)
 		{
-			printf("File content at disk index %d: %d", i, hard_disk[i]);
+			printf("File content at disk index %d: %d \n" , i, hard_disk[i]);
 			++counter;
 		}
 		else
