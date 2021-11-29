@@ -132,9 +132,8 @@ void sequential_allocation(int files[], int content[], int filesLength, int* _st
 	int blocksNeeded = 0;
 	int freeSpaceCount = 0;
 	int currentBlockSpace = 0;
-	printf("Enter starting block: ");
-	scanf("%d", &start);
-	//start = 1;
+
+	start = 2;
 	*_startBlock = start;
 
 	//just nice multiples of 5 elements 
@@ -147,11 +146,6 @@ void sequential_allocation(int files[], int content[], int filesLength, int* _st
 	{
 		blocksNeeded = (count / 5) + 1;
 	}
-	//fill in some blocks to test 
-	//for (len = 50; len < 66; ++len)
-	//{
-	//	files[len] = 10;
-	//}
 
 LOOP: 
 	index = start * entriesPerBlock;
@@ -184,7 +178,6 @@ LOOP:
 						*_endBlock = *_startBlock + blocksNeeded - 1;
 					}
 					freeSpaceCount = 0;
-					printf("Successfully sequentially allocated! \n");
 					break;
 				}
 
@@ -207,7 +200,6 @@ LOOP:
 	else
 	{
 		freeSpaceCount = 0;
-		printf("Block %d has already been allocated. Allocating to another block: \n", start);
 		start++;
 		goto LOOP;
 	}
@@ -217,14 +209,21 @@ LOOP:
 // Linked
 void linked_allocation(int files[], int content[], int filesLength, int* _startBlock, int* _endBlock)
 {
-	int start, index, count = filesLength, entriesPerBlock = 5, i = 0, j = 0;
-	printf("Enter starting block: ");
-	scanf("%d", &start);
-	*_startBlock = start;
-LOOP: index = start * entriesPerBlock;
-	if (files[index] == 0)
+	int start, currIndex, prevIndex, count = filesLength, entriesPerBlock = 5, i = 0, j = 0, totalBlockCount = 50;
+	for (start = 2; start < totalBlockCount; ++start)
 	{
-		for (i = index; i < index + entriesPerBlock - 1; ++i)
+		if (files[start * entriesPerBlock] == 0)
+		{
+			*_startBlock = start;
+			break;
+		}
+	}
+	prevIndex = start * entriesPerBlock;
+LOOP: 
+	currIndex = start * entriesPerBlock;
+	if (files[currIndex] == 0)
+	{
+		for (i = currIndex; i < currIndex + entriesPerBlock - 1; ++i)
 		{
 			if (files[i] == 0)
 			{
@@ -245,9 +244,9 @@ LOOP: index = start * entriesPerBlock;
 
 		if (count != 0)
 		{
-			printf("Block full. Enter next starting block: ");
-			scanf("%d", &start);
-			files[index + entriesPerBlock - 1] = start;
+			++start;
+			prevIndex = currIndex;
+			files[prevIndex + entriesPerBlock - 1] = start;
 			goto LOOP;
 		}
 		else
@@ -258,7 +257,9 @@ LOOP: index = start * entriesPerBlock;
 	}
 	else
 	{
-		printf("Block %d has already been allocated.\n", start);
+		++start;
+		files[prevIndex + entriesPerBlock - 1] = start;
+		goto LOOP;
 	}
 }
 
@@ -848,8 +849,6 @@ int main(int argc, char** argv) {
 			//find start block of the file
 			int _startBlock = 0, _endBlock = 0;
 			sequential_allocation(hard_disk, file_content, i, &_startBlock, &_endBlock);
-			printf("startblock: %d\n", _startBlock);
-			printf("endblock: %d\n", _endBlock);
 			disk_add(file_name, _startBlock, _endBlock, 1);
 
 		}
@@ -858,8 +857,6 @@ int main(int argc, char** argv) {
 			//linked
 			int _startBlock = 0, _endBlock = 0;
 			linked_allocation(hard_disk, file_content, i, &_startBlock, &_endBlock);
-			printf("startblock: %d\n", _startBlock);
-			printf("endblock: %d\n", _endBlock);
 			disk_add(file_name, _startBlock, _endBlock, 2);
 		}
 		else
