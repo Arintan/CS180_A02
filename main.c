@@ -193,7 +193,8 @@ LOOP:
 				case 3: i += 2; break;
 				case 4: i += 1; break;
 				}
-				continue;
+				++start;
+				goto LOOP;
 			}
 		}
 	}
