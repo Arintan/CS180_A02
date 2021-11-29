@@ -437,6 +437,7 @@ void linked_read(int fileName)
 		for (i = start_index; i < start_index + 4; ++i)
 		{
 			printf("File content at disk index %d: %d \n", i, hard_disk[i]);
+			++counter;
 		}
 		current_block = hard_disk[i];
 	}
