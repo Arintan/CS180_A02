@@ -237,6 +237,11 @@ LOOP: index = start * entriesPerBlock;
 			files[index + entriesPerBlock - 1] = start;
 			goto LOOP;
 		}
+		else
+		{
+			files[i] = -1;
+			*_endBlock = start;
+		}
 	}
 	else
 	{
@@ -247,7 +252,7 @@ LOOP: index = start * entriesPerBlock;
 // Indexed
 void indexed_allocation(int files[], int content[], int filesLength, int* _indexBlock, int* _startBlock, int* _endBlock)
 {
-	int start, index, indexblock = 0, count = filesLength, entriesPerBlock = 5, i = 0, j = 0, k = 0;
+	int start, index, indexblock = 0, count = filesLength, entriesPerBlock = 5, i = 0, j = 0, k = 0, counter = 5;
 
 	// user decide where index block position
 	//if (*_indexBlock == -1)
@@ -306,13 +311,19 @@ LOOP: printf("Enter starting block: ");
 		//insert entries to block
 		for (i = index; i < index + entriesPerBlock; ++i)
 		{
-			if (files[i] == 0 && count != 0)
+			if (files[i] == 0 && count != 0 && counter > 0)
 			{
 				files[i] = content[j];
 				//printf("content %d\n", content[j]);
 				//printf("files %d\n", files[i]);
 				++j;
 				--count;
+				--counter;
+				if (counter == 0 && count > 0)
+				{
+					counter = 5;
+					goto LOOP;
+				}
 			}
 			else
 			{
@@ -710,8 +721,20 @@ int main(int argc, char** argv) {
 		fgets(row, MAXCHAR, fstream);
 
 		token = strtok(row, ",");
+		
+		if (token == NULL)
+		{
+			break;
+		}
+		
 		command = token;
 		token = strtok(NULL, ",");
+		
+		if (token == NULL)
+		{
+			break;
+		}
+
 		file_name = atoi(token);
 		printf("command: %s \n", command);
 		printf("file name: %d \n", file_name);
