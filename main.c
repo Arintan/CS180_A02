@@ -267,58 +267,49 @@ LOOP:
 // Indexed
 void indexed_allocation(int files[], int content[], int filesLength, int* _indexBlock, int* _startBlock, int* _endBlock)
 {
-	int start, index, indexblock = 0, count = filesLength, entriesPerBlock = 5, i = 0, j = 0, k = 0, counter = 5;
+	int start = 0, index, indexblock = 0, count = filesLength, entriesPerBlock = 5, i = 0, j = 0, k = 0, counter = 5, maximumBlock = 100;
 
-	// user decide where index block position
-	//if (*_indexBlock == -1)
-	//{
-	//	//printf("start %d\n", *_indexBlock);
-	//	printf("Enter index block: ");
-	//	scanf("%d", &indexblock);
-	//	*_indexBlock = indexblock;
-	//	*_startBlock = indexblock;
-	//	*_endBlock = indexblock;
+	/*printf("Enter index block: ");
+	scanf("%d", &indexblock);*/
+	
+	for (i = 2; i < maximumBlock; ++i)
+	{
+		if (files[i * entriesPerBlock] == 0)
+		{
+			indexblock = i;
+			printf("indexblock = %d\n", indexblock);
+			break;
+		}
+	}
 
-	//	//printf("end %d\n", *_indexBlock);
-	//}
-	//else
-	//{
-	//	indexblock = *_indexBlock;
-	//	*_startBlock = indexblock;
-	//	*_endBlock = indexblock;
-	//}
-
-	printf("Enter index block: ");
-	scanf("%d", &indexblock);
 	*_indexBlock = indexblock;
 	*_startBlock = indexblock;
 	*_endBlock = indexblock;
 
-LOOP: printf("Enter starting block: ");
-	scanf("%d", &start);
+LOOP: 
+	//printf("Enter starting block: ");
+	//scanf("%d", &start);
+
+	for (i = *_indexBlock + 1; i < maximumBlock; ++i)
+	{
+		if (files[i * entriesPerBlock] == 0)
+		{
+			start = i;
+			printf("start = %d\n", start);
+			break;
+		}
+	}
 
 	index = start * entriesPerBlock;
 	if (files[index] == 0)
 	{
-		// insert block to insert block
-		//for (i = indexblock; i < indexblock + entriesPerBlock - 1; ++i)
-		//{
-		//	if (files[*_indexBlock * 5] == 0)
-		//	{
-		//		files[*_indexBlock * 5] = start;
-		//		//printf("indexblock %d\n", files[*_indexBlock]);
-
-		//		*_endBlock = i;
-		//		//printf("endblock %d\n", *_endBlock);
-		//	}
-		//}
 		for (i = 0; i < 5; ++i)
 		{
+			// index block information
 			if (files[*_indexBlock * 5 + i] == 0)
 			{
 				files[*_indexBlock * 5 + i] = start;
 				break;
-				//printf("indexblock %d\n", files[*_indexBlock]);
 			}
 		}
 
@@ -329,8 +320,6 @@ LOOP: printf("Enter starting block: ");
 			if (files[i] == 0 && count != 0 && counter > 0)
 			{
 				files[i] = content[j];
-				//printf("content %d\n", content[j]);
-				//printf("files %d\n", files[i]);
 				++j;
 				--count;
 				--counter;
@@ -403,8 +392,6 @@ void disk_add(int fileName, int startBlock, int endBlock, int method)
 
 		hard_disk[i] = temp;
 	}
-
-
 }
 
 
@@ -864,11 +851,8 @@ int main(int argc, char** argv) {
 		{
 			//indexed
 			int _startBlock = 0, _endBlock = 0;
-
 			indexed_allocation(hard_disk, file_content, i, &_indexBlock, &_startBlock, &_endBlock);
-			printf("startblock: %d\n", _startBlock);
-			printf("endblock: %d\n", _endBlock);
-			disk_add(file_name, _startBlock, _startBlock, 3);
+			disk_add(file_name, _startBlock, _endBlock, 3);
 		}
 		i = 0;
 	}
